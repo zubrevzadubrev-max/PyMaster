@@ -1,0 +1,1657 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PyMaster — Интерактивный курс Python | Автор: Джураева Нигина</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <!-- Skulpt Python-in-Browser Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        pyblue: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            400: '#38bdf8',
+                            500: '#3776ab',
+                            600: '#2b5b84',
+                            700: '#1e415e',
+                        },
+                        pyyellow: {
+                            300: '#fde047',
+                            400: '#ffd343',
+                            500: '#eab308',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Scrollbar & Smooth Animations */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.5);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.8);
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        html:not(.dark) .glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.06);
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        @keyframes fadeInSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .tab-fade {
+            animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Code Editor Line Numbers Synchronization */
+        .code-editor-wrapper {
+            position: relative;
+            display: flex;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.925rem;
+            line-height: 1.6rem;
+        }
+        .line-numbers {
+            user-select: none;
+            text-align: right;
+            padding: 1rem 0.75rem;
+            color: #64748b;
+            background: rgba(15, 23, 42, 0.6);
+            border-right: 1px solid rgba(255, 255, 255, 0.07);
+            min-width: 3rem;
+        }
+        .code-textarea {
+            flex: 1;
+            padding: 1rem;
+            background: transparent;
+            color: #f8fafc;
+            border: none;
+            outline: none;
+            resize: none;
+            white-space: pre;
+            overflow-wrap: normal;
+            overflow-x: auto;
+            tab-size: 4;
+            line-height: 1.6rem;
+        }
+    </style>
+</head>
+<body class="dark bg-slate-950 text-slate-100 transition-colors duration-300 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+    <!-- Confetti Canvas Overlay -->
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
+
+    <!-- Top Author Attribution Ribbon -->
+    <div class="bg-gradient-to-r from-indigo-600 via-blue-600 to-amber-500 text-white py-2 px-4 shadow-md relative z-40">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm font-medium">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-white/20 text-amber-200 font-bold">★</span>
+                <span>Образовательный интерактивный портал по программированию на Python</span>
+            </div>
+            <div class="bg-slate-950/30 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 font-semibold tracking-wide text-amber-100 shadow-inner">
+                Автор сайта — Джураева Нигина, ученица 11 „А“ класса
+            </div>
+        </div>
+    </div>
+
+    <!-- Sticky Navigation Bar -->
+    <header class="sticky top-0 z-30 glass-card border-b border-slate-800/80 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand Logo -->
+            <a href="#hero" class="flex items-center gap-3 group focus:outline-none">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-amber-400 p-0.5 shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
+                    <div class="w-full h-full bg-slate-900 rounded-[10px] flex items-center justify-center">
+                        <!-- Python Official-inspired Dual Snake SVG -->
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                            <path d="M11.9 2C7.5 2 7.8 3.9 7.8 3.9V6H12V6.7H6C6 6.7 2 6.3 2 11.8C2 17.3 5.5 17.1 5.5 17.1H7.5V14.5C7.5 14.5 7.4 11.5 10.5 11.5H15.2C15.2 11.5 17.8 11.5 17.8 9V4.6C17.8 4.6 18.2 2 11.9 2ZM9.4 3.5C9.9 3.5 10.3 3.9 10.3 4.4C10.3 4.9 9.9 5.3 9.4 5.3C8.9 5.3 8.5 4.9 8.5 4.4C8.5 3.9 8.9 3.5 9.4 3.5Z" fill="#38bdf8"/>
+                            <path d="M12.1 22C16.5 22 16.2 20.1 16.2 20.1V18H12V17.3H18C18 17.3 22 17.7 22 12.2C22 6.7 18.5 6.9 18.5 6.9H16.5V9.5C16.5 9.5 16.6 12.5 13.5 12.5H8.8C8.8 12.5 6.2 12.5 6.2 15V19.4C6.2 19.4 5.8 22 12.1 22ZM14.6 20.5C14.1 20.5 13.7 20.1 13.7 19.6C13.7 19.1 14.1 18.7 14.6 18.7C15.1 18.7 15.5 19.1 15.5 19.6C15.5 20.1 15.1 20.5 14.6 20.5Z" fill="#fbbf24"/>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <span class="font-extrabold text-lg tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-indigo-400 to-amber-400">PyMaster</span>
+                    <span class="hidden sm:inline-block ml-1.5 text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-medium">Python 3</span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation Links -->
+            <nav class="hidden md:flex items-center gap-1 lg:gap-2 text-sm font-medium">
+                <a href="#learning-section" class="px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-blue-400 transition-colors">📚 Уроки (6 тем)</a>
+                <a href="#sandbox-section" class="px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-amber-400 transition-colors">💻 Онлайн-тренажёр</a>
+                <a href="#progress-section" class="px-3 py-2 rounded-lg hover:bg-slate-800/60 hover:text-emerald-400 transition-colors">🏆 Мой прогресс</a>
+            </nav>
+
+            <!-- Progress Pill & Controls -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Overall Progress Pill -->
+                <button onclick="document.getElementById('progress-section').scrollIntoView({behavior:'smooth'})" class="flex items-center gap-2.5 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-xl hover:border-indigo-500/60 transition-all group">
+                    <div class="flex flex-col text-left">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] text-slate-400 font-medium">Прогресс</span>
+                            <span id="nav-progress-text" class="text-xs font-bold text-emerald-400">0%</span>
+                        </div>
+                        <div class="w-20 sm:w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden mt-0.5">
+                            <div id="nav-progress-bar" class="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-400 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Theme Toggle Button -->
+                <button id="theme-toggle" onclick="toggleTheme()" title="Переключить тему оформления" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-300 hover:text-amber-400 hover:border-amber-400/50 transition-all">
+                    <svg id="theme-icon-sun" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                    </svg>
+                </button>
+
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-slate-300 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Dropdown Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-800 px-4 pt-3 pb-4 space-y-2 bg-slate-900/95 backdrop-blur-xl">
+            <a href="#learning-section" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg bg-slate-800/50 text-sm font-medium">📚 Разделы курса Python</a>
+            <a href="#sandbox-section" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg bg-slate-800/50 text-sm font-medium">💻 Интерактивный тренажёр</a>
+            <a href="#progress-section" onclick="toggleMobileMenu()" class="block px-3 py-2 rounded-lg bg-slate-800/50 text-sm font-medium">🏆 Статистика и достижения</a>
+            <div class="pt-2 border-t border-slate-800 text-xs text-amber-300 font-medium px-2">
+                Автор сайта — Джураева Нигина, ученица 11 „А“ класса
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1">
+        <!-- HERO SECTION -->
+        <section id="hero" class="relative overflow-hidden py-10 sm:py-16 lg:py-20 border-b border-slate-800/70">
+            <!-- Decorative Ambient Glows -->
+            <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute top-1/3 -right-24 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                    <!-- Left Hero Content -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <!-- Prominent Author Badge Card -->
+                        <div class="inline-flex flex-wrap items-center gap-2.5 px-4 py-2 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-blue-500/15 to-amber-500/20 border border-indigo-400/30 shadow-lg">
+                            <span class="flex h-2.5 w-2.5 relative">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
+                            </span>
+                            <span class="text-xs sm:text-sm font-bold text-amber-300 tracking-wide">
+                                Автор сайта — Джураева Нигина, ученица 11 „А“ класса
+                            </span>
+                        </div>
+
+                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
+                            Изучай <span class="bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-blue-500 to-amber-400">Python</span> легко, наглядно и на практике
+                        </h1>
+
+                        <p class="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
+                            Добро пожаловать на интерактивную платформу для начинающих программистов! Здесь тебя ждут понятные объяснения 6 ключевых тем, встроенный компилятор кода прямо в браузере, проверочные тесты с разбором ответов и практические задания.
+                        </p>
+
+                        <!-- CTA Buttons -->
+                        <div class="flex flex-wrap items-center gap-4 pt-2">
+                            <a href="#learning-section" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold shadow-lg shadow-blue-600/30 flex items-center gap-2 transition-all transform hover:-translate-y-0.5">
+                                <span>Начать обучение</span>
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                            </a>
+                            <a href="#sandbox-section" class="px-6 py-3.5 rounded-xl glass-card hover:border-amber-400/50 text-slate-100 font-semibold flex items-center gap-2 transition-all transform hover:-translate-y-0.5">
+                                <span class="text-amber-400">▶</span>
+                                <span>Открыть тренажёр кода</span>
+                            </a>
+                        </div>
+
+                        <!-- Quick Feature Stats -->
+                        <div class="grid grid-cols-3 gap-3 sm:gap-6 pt-4 max-w-lg">
+                            <div class="glass-card p-3.5 rounded-2xl text-center">
+                                <div class="text-xl sm:text-2xl font-extrabold text-sky-400">6 модулей</div>
+                                <div class="text-xs text-slate-400 mt-0.5">От переменных до функций</div>
+                            </div>
+                            <div class="glass-card p-3.5 rounded-2xl text-center">
+                                <div class="text-xl sm:text-2xl font-extrabold text-amber-400">18 тестов</div>
+                                <div class="text-xs text-slate-400 mt-0.5">С подробным разбором</div>
+                            </div>
+                            <div class="glass-card p-3.5 rounded-2xl text-center">
+                                <div class="text-xl sm:text-2xl font-extrabold text-emerald-400">Live-код</div>
+                                <div class="text-xs text-slate-400 mt-0.5">Запуск Python в браузере</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Hero Interactive Preview Card -->
+                    <div class="lg:col-span-5">
+                        <div class="glass-card rounded-3xl p-5 sm:p-6 border border-slate-700/80 shadow-2xl relative animate-float">
+                            <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                    <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                    <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                    <span class="ml-2 text-xs font-mono text-slate-400">welcome_python.py</span>
+                                </div>
+                                <span class="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Готов к запуску</span>
+                            </div>
+
+                            <pre class="font-mono text-xs sm:text-sm text-slate-200 bg-slate-950/90 p-4 rounded-2xl overflow-x-auto leading-relaxed border border-slate-800/90"><code><span class="text-slate-500"># Приветствие на языке Python</span>
+<span class="text-sky-400">author</span> = <span class="text-amber-300">"Джураева Нигина (11 «А»)"</span>
+<span class="text-sky-400">topics</span> = [<span class="text-amber-300">"Переменные"</span>, <span class="text-amber-300">"Циклы"</span>, <span class="text-amber-300">"Функции"</span>]
+
+<span class="text-purple-400">def</span> <span class="text-emerald-400">start_learning</span>(student):
+    <span class="text-sky-300">print</span>(<span class="text-amber-300">f"Привет, {student}! Удачи в Python!"</span>)
+    <span class="text-purple-400">for</span> item <span class="text-purple-400">in</span> topics:
+        <span class="text-sky-300">print</span>(<span class="text-amber-300">"Изучаем тему:"</span>, item)
+
+start_learning(<span class="text-amber-300">"Будущий разработчик"</span>)</code></pre>
+
+                            <div class="mt-4 bg-slate-900/90 rounded-xl p-3.5 border border-slate-800 font-mono text-xs space-y-1">
+                                <div class="text-slate-400 text-[11px] uppercase tracking-wider mb-1">Вывод программы:</div>
+                                <div class="text-emerald-400">Привет, Будущий разработчик! Удачи в Python!</div>
+                                <div class="text-slate-300">Изучаем тему: Переменные</div>
+                                <div class="text-slate-300">Изучаем тему: Циклы</div>
+                                <div class="text-slate-300">Изучаем тему: Функции</div>
+                            </div>
+
+                            <div class="mt-4 flex items-center justify-between gap-2">
+                                <span class="text-xs text-slate-400">Попробуй изменить этот код сам!</span>
+                                <button onclick="loadCodeIntoSandbox(`# Приветствие на языке Python\nauthor = &quot;Джураева Нигина, 11 А класс&quot;\ntopics = [&quot;Переменные&quot;, &quot;Условия&quot;, &quot;Циклы&quot;, &quot;Функции&quot;]\n\nprint(&quot;Добро пожаловать на курс!&quot;)\nprint(&quot;Автор проекта:&quot;, author)\nfor t in topics:\n    print(&quot;✅ Модуль:&quot;, t)`)" class="px-3.5 py-2 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/40 text-xs font-semibold transition-all">
+                                    Запустить в тренажёре →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CORE LEARNING MODULES SECTION (6 TOPICS) -->
+        <section id="learning-section" class="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Пошаговая программа</span>
+                    <h2 class="text-2xl sm:text-4xl font-extrabold mt-1">Основы языка Python</h2>
+                    <p class="text-slate-400 text-sm sm:text-base mt-1">Выбери раздел, изучи теорию с примерами, пройди мини-тест и реши практическую задачу.</p>
+                </div>
+                <div class="flex items-center gap-2 text-xs sm:text-sm bg-slate-900/90 border border-slate-800 px-4 py-2.5 rounded-2xl">
+                    <span>Пройдено разделов:</span>
+                    <span id="completed-topics-counter" class="font-bold text-emerald-400">0 из 6</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+                <!-- Left Sidebar: Topic Navigation List -->
+                <div class="lg:col-span-4 space-y-2.5" id="topic-sidebar">
+                    <!-- Dynamically populated by JS -->
+                </div>
+
+                <!-- Right Area: Active Topic Content (Theory, Examples, Quiz, Practice Callout) -->
+                <div class="lg:col-span-8">
+                    <div id="topic-content-container" class="glass-card rounded-3xl p-5 sm:p-8 border border-slate-800 shadow-xl">
+                        <!-- Dynamically populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE PYTHON SANDBOX & PRACTICAL CHALLENGES SECTION -->
+        <section id="sandbox-section" class="py-12 sm:py-16 bg-slate-900/50 border-y border-slate-800/80">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-amber-400">Практикум прямо в браузере</span>
+                        <h2 class="text-2xl sm:text-4xl font-extrabold mt-1">Интерактивный тренажёр Python</h2>
+                        <p class="text-slate-400 text-sm sm:text-base mt-1">Пиши собственный код, запускай примеры или выполняй практические задания с автоматической проверкой.</p>
+                    </div>
+
+                    <!-- Mode Switcher: Free Sandbox vs Practical Tasks -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-slate-400 mr-1">Быстрые шаблоны:</span>
+                        <button onclick="loadTemplate('hello')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition">Приветствие</button>
+                        <button onclick="loadTemplate('calc')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition">Калькулятор</button>
+                        <button onclick="loadTemplate('table')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition">Таблица умножения</button>
+                        <button onclick="loadTemplate('fibonacci')" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-medium border border-slate-700 transition">Числа Фибоначчи</button>
+                    </div>
+                </div>
+
+                <!-- Practical Tasks Selector Bar -->
+                <div class="glass-card rounded-2xl p-4 sm:p-5 mb-6 border border-indigo-500/30">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold">🎯</span>
+                            <div>
+                                <h3 class="font-bold text-sm sm:text-base">Практические задания по темам</h3>
+                                <p class="text-xs text-slate-400">Выбери задачу, напиши код в редакторе ниже и нажми «Проверить решение»</p>
+                            </div>
+                        </div>
+                        <div id="task-status-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 self-start sm:self-center">
+                            Задание не решено
+                        </div>
+                    </div>
+
+                    <!-- Task Selector Buttons (1-6) -->
+                    <div id="challenge-selector-buttons" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mb-4">
+                        <!-- Rendered via JS -->
+                    </div>
+
+                    <!-- Active Challenge Description Box -->
+                    <div id="active-challenge-box" class="bg-slate-950/70 rounded-xl p-4 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2">
+                                <span id="challenge-title" class="font-bold text-indigo-300 text-sm sm:text-base">Задание 1: Переменные</span>
+                                <span id="challenge-expected-pill" class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-amber-300 border border-slate-700">Ожидаемый вывод: ...</span>
+                            </div>
+                            <p id="challenge-desc" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+                            <div id="challenge-hint" class="hidden text-xs text-amber-300/90 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 mt-2 font-mono"></div>
+                        </div>
+                        <div class="flex flex-wrap sm:flex-nowrap items-center gap-2 shrink-0">
+                            <button onclick="toggleChallengeHint()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium border border-slate-700 transition">
+                                💡 Подсказка
+                            </button>
+                            <button onclick="loadCurrentChallengeStarter()" class="px-3 py-2 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-medium border border-indigo-500/30 transition">
+                                🔄 Сбросить шаблон
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Editor + Console Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <!-- Code Editor Column -->
+                    <div class="lg:col-span-7 flex flex-col rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 shadow-2xl">
+                        <!-- Editor Header -->
+                        <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                <span class="ml-2 text-xs font-mono text-slate-300 font-semibold">main.py — Редактор Python 3</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button onclick="copyEditorCode()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition flex items-center gap-1" title="Скопировать код">
+                                    <span id="copy-btn-text">📋 Копировать</span>
+                                </button>
+                                <button onclick="clearEditor()" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-300 text-slate-300 text-xs transition">
+                                    🗑 Очистить
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Code Textarea with Line Numbers -->
+                        <div class="code-editor-wrapper flex-1 min-h-[280px] sm:min-h-[340px]">
+                            <div id="line-numbers" class="line-numbers">1</div>
+                            <textarea id="python-code-editor" class="code-textarea" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" placeholder="# Введите ваш код на Python здесь..."></textarea>
+                        </div>
+
+                        <!-- Editor Action Footer -->
+                        <div class="bg-slate-900/95 px-4 py-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <button onclick="runPythonCode(false)" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-600/25 flex items-center gap-2 transition transform active:scale-95">
+                                    <span>▶ Запустить код</span>
+                                </button>
+                                <button onclick="runPythonCode(true)" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 flex items-center gap-2 transition transform active:scale-95">
+                                    <span>✓ Проверить решение</span>
+                                </button>
+                            </div>
+                            <span class="text-[11px] text-slate-400 hidden sm:inline">Совет: используйте <kbd class="px-1.5 py-0.5 bg-slate-800 rounded border border-slate-700 font-mono">Tab</kbd> для отступа (4 пробела)</span>
+                        </div>
+                    </div>
+
+                    <!-- Output Terminal Column -->
+                    <div class="lg:col-span-5 flex flex-col rounded-2xl overflow-hidden border border-slate-700/80 bg-slate-950 shadow-2xl">
+                        <div class="bg-slate-900 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="text-emerald-400 font-mono text-xs font-bold">❯_</span>
+                                <span class="text-xs font-mono text-slate-300 font-semibold">Терминал вывода (Console)</span>
+                            </div>
+                            <button onclick="clearConsole()" class="text-xs text-slate-400 hover:text-slate-200 transition">Очистить вывод</button>
+                        </div>
+
+                        <div id="python-console-output" class="flex-1 p-4 font-mono text-xs sm:text-sm overflow-y-auto min-h-[220px] sm:min-h-[280px] space-y-2 text-slate-200 whitespace-pre-wrap leading-relaxed">
+                            <div class="text-slate-500 italic">Нажмите «▶ Запустить код», чтобы увидеть результат выполнения программы...</div>
+                        </div>
+
+                        <!-- Verification Feedback Box inside Terminal -->
+                        <div id="verification-feedback" class="hidden p-3.5 border-t border-slate-800 text-xs sm:text-sm font-medium"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROGRESS & ACHIEVEMENTS SECTION -->
+        <section id="progress-section" class="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="glass-card rounded-3xl p-6 sm:p-10 border border-slate-800 relative overflow-hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-emerald-400">Твои результаты</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold mt-1">Панель прогресса обучения</h2>
+                        <p class="text-slate-400 text-sm mt-1">Весь прогресс автоматически сохраняется в твоём браузере.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="resetAllProgress()" class="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition">
+                            Сбросить прогресс
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-8">
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                        <div class="text-xs text-slate-400 font-medium">Общий прогресс курса</div>
+                        <div id="stat-total-percent" class="text-3xl font-extrabold text-emerald-400 mt-1">0%</div>
+                        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-3">
+                            <div id="stat-total-bar" class="h-full bg-gradient-to-r from-blue-500 to-emerald-400 transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                        <div class="text-xs text-slate-400 font-medium">Изученные темы</div>
+                        <div id="stat-topics-read" class="text-3xl font-extrabold text-sky-400 mt-1">0 / 6</div>
+                        <div class="text-xs text-slate-400 mt-2">Отмечено как изученные</div>
+                    </div>
+
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                        <div class="text-xs text-slate-400 font-medium">Верные ответы в тестах</div>
+                        <div id="stat-quizzes-passed" class="text-3xl font-extrabold text-amber-400 mt-1">0 / 18</div>
+                        <div class="text-xs text-slate-400 mt-2">Теоретическая проверка</div>
+                    </div>
+
+                    <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
+                        <div class="text-xs text-slate-400 font-medium">Решённые задачи в коде</div>
+                        <div id="stat-challenges-solved" class="text-3xl font-extrabold text-indigo-400 mt-1">0 / 6</div>
+                        <div class="text-xs text-slate-400 mt-2">Практический тренажёр</div>
+                    </div>
+                </div>
+
+                <!-- Topic Breakdown Cards -->
+                <h3 class="font-bold text-base sm:text-lg mb-4">Детализация по модулям:</h3>
+                <div id="progress-modules-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Certificate / Completion Banner -->
+                <div id="completion-certificate" class="hidden mt-8 p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-indigo-900/60 via-blue-900/60 to-emerald-900/60 border border-emerald-400/40 text-center space-y-3">
+                    <div class="text-4xl">🎓✨</div>
+                    <h3 class="text-xl sm:text-2xl font-extrabold text-white">Поздравляем! Курс по основам Python успешно пройден!</h3>
+                    <p class="text-sm text-slate-200 max-w-xl mx-auto">
+                        Ты изучил все 6 фундаментальных разделов, ответил на вопросы тестов и решил все практические задачи в интерактивном тренажёре!
+                    </p>
+                    <div class="pt-2 text-xs text-amber-300 font-semibold">
+                        Образовательный проект подготовила: Автор сайта — Джураева Нигина, ученица 11 „А“ класса
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER WITH PROMINENT ATTRIBUTION -->
+    <footer class="bg-slate-950 border-t border-slate-800/90 py-10 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-amber-400 flex items-center justify-center text-slate-950 font-extrabold text-lg">
+                        Py
+                    </div>
+                    <div>
+                        <div class="font-bold text-slate-100">PyMaster — Интерактивный учебник Python</div>
+                        <div class="text-xs text-slate-400">Понятная теория, живой код и практика для начинающих</div>
+                    </div>
+                </div>
+
+                <!-- Mandatory Highlighted Signature Box -->
+                <div class="px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-500/15 via-blue-500/15 to-amber-500/15 border border-amber-400/40 text-center md:text-right shadow-lg">
+                    <div class="text-xs uppercase tracking-wider text-slate-400">Разработка и учебные материалы</div>
+                    <div class="text-sm sm:text-base font-extrabold text-amber-300 mt-0.5">
+                        Автор сайта — Джураева Нигина, ученица 11 „А“ класса
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-900 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500">
+                <span>© 2026 Интерактивный образовательный проект по информатике и программированию.</span>
+                <div class="flex gap-4">
+                    <a href="#hero" class="hover:text-slate-300 transition">Наверх ↑</a>
+                    <a href="#learning-section" class="hover:text-slate-300 transition">Уроки</a>
+                    <a href="#sandbox-section" class="hover:text-slate-300 transition">Тренажёр</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toast-notification" class="fixed bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 pointer-events-none glass-card px-4 py-3 rounded-2xl border border-emerald-500/40 shadow-2xl flex items-center gap-3 max-w-sm">
+        <span id="toast-icon" class="text-xl">✨</span>
+        <span id="toast-message" class="text-xs sm:text-sm font-semibold text-slate-100">Прогресс обновлён!</span>
+    </div>
+
+    <!-- APPLICATION DATA & LOGIC -->
+    <script>
+        /* ============================================================================
+         * 1. EDUCATIONAL CONTENT DATA (6 CORE PYTHON MODULES, QUIZZES & CHALLENGES)
+         * ============================================================================ */
+        const pythonModules = [
+            {
+                id: 'variables',
+                number: 1,
+                title: 'Переменные',
+                subtitle: 'Хранение данных, имена и динамическая типизация',
+                icon: '📦',
+                color: 'from-sky-500 to-blue-600',
+                summary: 'Переменная в Python — это именованная «коробка» в памяти компьютера, в которую можно положить любое значение (число, текст, список) и обращаться к нему по имени.',
+                theoryHtml: `
+                    <div class="space-y-4 text-slate-200 leading-relaxed text-sm sm:text-base">
+                        <p>Представь, что ты подписываешь коробку маркером <code class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono">score</code> и кладёшь внутрь число <code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 font-mono">100</code>. В Python для этого используется оператор присваивания <code class="px-1.5 py-0.5 rounded bg-slate-800 text-emerald-300 font-mono">=</code>.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 my-4">
+                            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
+                                <div class="font-bold text-emerald-400 text-xs uppercase tracking-wider mb-2">✅ Правильные имена</div>
+                                <ul class="text-xs sm:text-sm space-y-1 font-mono text-slate-300">
+                                    <li>user_name = "Алиса"</li>
+                                    <li>age2 = 17</li>
+                                    <li>_secret = 42</li>
+                                    <li>totalScore = 95</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800">
+                                <div class="font-bold text-rose-400 text-xs uppercase tracking-wider mb-2">❌ Недопустимые имена</div>
+                                <ul class="text-xs sm:text-sm space-y-1 font-mono text-slate-400">
+                                    <li>2age = 17 <span class="text-rose-400">(начинается с цифры)</span></li>
+                                    <li>my-name = "Иван" <span class="text-rose-400">(дефис запрещён)</span></li>
+                                    <li>user name = "Аня" <span class="text-rose-400">(пробел запрещён)</span></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <p><strong>Особенность Python:</strong> множественное присваивание позволяет задать значения сразу нескольким переменным в одной строке, например: <code class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono">x, y = 10, 20</code>.</p>
+                    </div>
+                `,
+                codeExample: `# Создание переменных в Python
+student_name = "Нигина"
+school_grade = 11
+school_letter = "А"
+
+print("Ученица:", student_name)
+print("Класс:", school_grade, school_letter)
+
+# Изменение значения переменной
+points = 50
+points = points + 25
+print("Итоговые баллы:", points)`,
+                quiz: [
+                    {
+                        question: 'Какой символ используется в Python для присваивания значения переменной?',
+                        options: ['==', '=', ':=:', '->'],
+                        correct: 1,
+                        explanation: 'Одиночный знак равенства «=» записывает значение справа в переменную слева. Двойное равенство «==» используется для сравнения.'
+                    },
+                    {
+                        question: 'Какое из перечисленных имён переменной вызовет ошибку в Python?',
+                        options: ['student_1', '_count', '1st_place', 'maxValue'],
+                        correct: 2,
+                        explanation: 'Имя переменной в Python не может начинаться с цифры (1st_place). Оно должно начинаться с буквы или символа подчёркивания «_».'
+                    },
+                    {
+                        question: 'Что выведет код: a = 5; a = a + 3; print(a)?',
+                        options: ['5', '3', '8', 'a + 3'],
+                        correct: 2,
+                        explanation: 'Сначала в переменной a хранится 5, затем к ней прибавляется 3, и новое значение 8 перезаписывается в переменную a.'
+                    }
+                ],
+                challenge: {
+                    title: 'Задача 1: Подсчёт яблок и груш',
+                    description: 'Создай переменную apples со значением 12 и переменную pears со значением 8. Выведи их сумму на экран с помощью функции print().',
+                    starterCode: `# Задай переменные apples и pears и выведи их сумму\napples = 12\npears = \n\nprint()`,
+                    expectedOutput: '20',
+                    hint: 'Напиши pears = 8, а затем print(apples + pears)'
+                }
+            },
+            {
+                id: 'datatypes',
+                number: 2,
+                title: 'Типы данных',
+                subtitle: 'Числа (int, float), строки (str), логический тип (bool)',
+                icon: '🧬',
+                color: 'from-indigo-500 to-purple-600',
+                summary: 'Каждое значение в Python имеет свой тип данных: целые и дробные числа нужны для расчётов, строки — для работы с текстом, а логический тип — для проверки истинности.',
+                theoryHtml: `
+                    <div class="space-y-4 text-slate-200 leading-relaxed text-sm sm:text-base">
+                        <p>В Python четыре основных базовых типа данных, которые нужно знать каждому начинающему разработчику:</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <span class="font-mono font-bold text-sky-400">int</span> — целые числа: <code class="font-mono text-amber-300">25, -10, 0, 2026</code>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <span class="font-mono font-bold text-indigo-400">float</span> — дробные числа (через точку): <code class="font-mono text-amber-300">3.14, -0.5, 9.8</code>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <span class="font-mono font-bold text-amber-400">str</span> — строки (текст в кавычках): <code class="font-mono text-amber-300">"Python", 'Привет'</code>
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <span class="font-mono font-bold text-emerald-400">bool</span> — логический тип: <code class="font-mono text-amber-300">True</code> (Истина) или <code class="font-mono text-amber-300">False</code> (Ложь)
+                            </div>
+                        </div>
+                        <p>Узнать тип любого объекта помогает встроенная функция <code class="px-1.5 py-0.5 rounded bg-slate-800 text-sky-300 font-mono">type(x)</code>, а преобразовать один тип в другой — функции <code class="px-1.5 py-0.5 rounded bg-slate-800 text-emerald-300 font-mono">int()</code>, <code class="px-1.5 py-0.5 rounded bg-slate-800 text-emerald-300 font-mono">str()</code> и <code class="px-1.5 py-0.5 rounded bg-slate-800 text-emerald-300 font-mono">float()</code>.</p>
+                    </div>
+                `,
+                codeExample: `# Основные типы данных и преобразование
+age = 17                  # int (целое число)
+pi = 3.1415               # float (дробное число)
+language = "Python"       # str (строка)
+is_easy = True            # bool (логический тип)
+
+print("Тип переменной age:", type(age))
+print("Тип переменной language:", type(language))
+
+# Преобразование строки в число
+str_number = "150"
+result = int(str_number) + 50
+print("Сумма после преобразования:", result)`,
+                quiz: [
+                    {
+                        question: 'Какой тип данных имеет значение 3.14 в Python?',
+                        options: ['int', 'float', 'str', 'bool'],
+                        correct: 1,
+                        explanation: 'Числа с плавающей точкой (дробные числа) в Python относятся к типу float.'
+                    },
+                    {
+                        question: 'Что получится в результате выполнения print("5" + "7")?',
+                        options: ['12', '57', 'Ошибка', '5 + 7'],
+                        correct: 1,
+                        explanation: 'Так как "5" и "7" заключены в кавычки, это строки (str). Оператор «+» склеивает (конкатенирует) строки, получая "57".'
+                    },
+                    {
+                        question: 'Какая функция преобразует строку "42" в целое число 42?',
+                        options: ['str("42")', 'float("42")', 'int("42")', 'type("42")'],
+                        correct: 2,
+                        explanation: 'Функция int() преобразует строку, содержащую цифры, в целое число (integer).'
+                    }
+                ],
+                challenge: {
+                    title: 'Задача 2: Перевод строки в число',
+                    description: 'Дана строковая переменная price_text = "250". Преобразуй её в целое число с помощью int(), прибавь 50 (доставка) и выведи итоговое число.',
+                    starterCode: `price_text = "250"\n# Преобразуй price_text в int, прибавь 50 и выведи результат\ntotal = \nprint(total)`,
+                    expectedOutput: '300',
+                    hint: 'Используй int(price_text) + 50'
+                }
+            },
+            {
+                id: 'conditionals',
+                number: 3,
+                title: 'Условия',
+                subtitle: 'Ветвление программ: if, elif, else и логические операторы',
+                icon: '🔀',
+                color: 'from-amber-500 to-orange-600',
+                summary: 'Условные конструкции позволяют программе принимать решения в зависимости от того, истинно или ложно заданное условие.',
+                theoryHtml: `
+                    <div class="space-y-4 text-slate-200 leading-relaxed text-sm sm:text-base">
+                        <p>Конструкция <code class="px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-mono">if</code> проверяет условие. Если оно верно (<code class="font-mono text-emerald-300">True</code>), выполняется блок кода с отступом в 4 пробела. Дополнительные ветки проверяются через <code class="px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-mono">elif</code> (иначе если), а все остальные случаи обрабатывает <code class="px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-mono">else</code>.</p>
+                        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm space-y-1.5">
+                            <div class="font-bold text-amber-400">Операторы сравнения и логики:</div>
+                            <div>• <code class="font-mono text-sky-300">&gt;, &lt;, &gt;=, &lt;=</code> — больше, меньше, больше или равно, меньше или равно</div>
+                            <div>• <code class="font-mono text-sky-300">==</code> — равно, <code class="font-mono text-sky-300">!=</code> — не равно</div>
+                            <div>• <code class="font-mono text-purple-300">and</code> (И), <code class="font-mono text-purple-300">or</code> (ИЛИ), <code class="font-mono text-purple-300">not</code> (НЕ) — объединение нескольких условий</div>
+                        </div>
+                    </div>
+                `,
+                codeExample: `# Проверка оценки за контрольную работу
+score = 88
+
+if score >= 90:
+    print("Оценка: 5 (Отлично!)")
+elif score >= 75:
+    print("Оценка: 4 (Хорошо!)")
+elif score >= 50:
+    print("Оценка: 3 (Удовлетворительно)")
+else:
+    print("Нужно повторить материал")`,
+                quiz: [
+                    {
+                        question: 'Какое ключевое слово используется в Python для проверки дополнительного условия («иначе если»)?',
+                        options: ['elseif', 'else if', 'elif', 'when'],
+                        correct: 2,
+                        explanation: 'В Python используется сокращённое ключевое слово elif (от англ. else if).'
+                    },
+                    {
+                        question: 'Как в Python выделяется блок кода внутри условия if?',
+                        options: ['Фигурными скобками { }', 'Отступом (обычно 4 пробела)', 'Словами begin и end', 'Круглыми скобками ( )'],
+                        correct: 1,
+                        explanation: 'Python использует отступы (4 пробела) для обозначения вложенных блоков кода после двоеточия.'
+                    },
+                    {
+                        question: 'Когда выражение (x > 5 and x < 10) вернёт True?',
+                        options: ['При x = 4', 'При x = 7', 'При x = 10', 'При любом x'],
+                        correct: 1,
+                        explanation: 'Оператор and требует, чтобы оба условия были истинны одновременно. Число 7 больше 5 и строго меньше 10.'
+                    }
+                ],
+                challenge: {
+                    title: 'Задача 3: Проверка температуры',
+                    description: 'Задана переменная temp = 25. Напиши условие: если temp >= 20, выведи строку "Тепло", иначе выведи "Прохладно".',
+                    starterCode: `temp = 25\n# Напиши конструкцию if - else\nif temp >= 20:\n    print("Тепло")\nelse:\n    `,
+                    expectedOutput: 'Тепло',
+                    hint: 'В блоке if оставь print("Тепло"), а в блоке else напиши print("Прохладно")'
+                }
+            },
+            {
+                id: 'loops',
+                number: 4,
+                title: 'Циклы',
+                subtitle: 'Многократное повторение: for, range(), while',
+                icon: '🔄',
+                color: 'from-emerald-500 to-teal-600',
+                summary: 'Циклы избавляют от дублирования кода и позволяют выполнить действие десятки или тысячи раз всего в пару строк.',
+                theoryHtml: `
+                    <div class="space-y-4 text-slate-200 leading-relaxed text-sm sm:text-base">
+                        <p>В Python есть два вида циклов:</p>
+                        <ul class="space-y-2 list-disc list-inside">
+                            <li><strong>Цикл <code class="font-mono text-purple-300">for</code></strong> — перебирает элементы последовательности или выполняется заданное число раз с помощью функции <code class="font-mono text-sky-300">range(start, stop)</code>.</li>
+                            <li><strong>Цикл <code class="font-mono text-purple-300">while</code></strong> — повторяет блок кода, пока условие остаётся истинным.</li>
+                        </ul>
+                        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm">
+                            💡 Помни: <code class="font-mono text-sky-300">range(1, 6)</code> создаёт числа от <code class="font-mono text-amber-300">1 до 5</code> включительно (верхняя граница 6 не включается!).
+                        </div>
+                    </div>
+                `,
+                codeExample: `# Цикл for с функцией range()
+print("Считаем от 1 до 4:")
+for i in range(1, 5):
+    print("Шаг номер:", i)
+
+# Цикл while для подсчёта суммы
+n = 1
+total = 0
+while n <= 5:
+    total = total + n
+    n = n + 1
+print("Сумма чисел от 1 до 5 равна:", total)`,
+                quiz: [
+                    {
+                        question: 'Какие числа сгенерирует функция range(3)?',
+                        options: ['1, 2, 3', '0, 1, 2', '0, 1, 2, 3', '3'],
+                        correct: 1,
+                        explanation: 'По умолчанию range(n) начинает отсчёт с 0 и заканчивает на n - 1, то есть выдаёт 0, 1, 2.'
+                    },
+                    {
+                        question: 'Какой оператор позволяет досрочно выйти из цикла?',
+                        options: ['stop', 'exit', 'break', 'continue'],
+                        correct: 2,
+                        explanation: 'Оператор break немедленно прерывает выполнение текущего цикла.'
+                    },
+                    {
+                        question: 'Что произойдёт, если условие в цикле while всегда остаётся True и нет break?',
+                        options: ['Цикл выполнится 1 раз', 'Возникнет бесконечный цикл', 'Цикл пропустится', 'Python сам остановит его через 3 шага'],
+                        correct: 1,
+                        explanation: 'Если условие в while никогда не становится False, цикл будет работать бесконечно.'
+                    }
+                ],
+                challenge: {
+                    title: 'Задача 4: Квадраты чисел от 1 до 3',
+                    description: 'Используя цикл for num in range(1, 4):, выведи на экран квадрат каждого числа (num * num) на новой строке (должно вывестись 1, 4, 9).',
+                    starterCode: `# Выведи квадраты чисел 1, 2 и 3 с помощью цикла for\nfor num in range(1, 4):\n    print()`,
+                    expectedOutput: '1\n4\n9',
+                    hint: 'Внутри цикла напиши print(num * num)'
+                }
+            },
+            {
+                id: 'lists',
+                number: 5,
+                title: 'Списки',
+                subtitle: 'Коллекции элементов, индексы, срезы и методы списков',
+                icon: '📑',
+                color: 'from-pink-500 to-rose-600',
+                summary: 'Список (list) — это упорядоченная изменяемая коллекция, позволяющая хранить сразу много значений в одной переменной.',
+                theoryHtml: `
+                    <div class="space-y-4 text-slate-200 leading-relaxed text-sm sm:text-base">
+                        <p>Списки создаются с помощью квадратных скобок <code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 font-mono">[ ]</code>. Нумерация элементов (индексация) в Python <strong>всегда начинается с нуля (0)</strong>!</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <code class="font-mono text-emerald-400">len(my_list)</code> — возвращает количество элементов в списке.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <code class="font-mono text-emerald-400">my_list.append(x)</code> — добавляет новый элемент в конец списка.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <code class="font-mono text-emerald-400">my_list[0]</code> — обращение к первому элементу списка.
+                            </div>
+                            <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                                <code class="font-mono text-emerald-400">sum(my_list)</code> — вычисляет сумму числового списка.
+                            </div>
+                        </div>
+                    </div>
+                `,
+                codeExample: `# Работа со списками в Python
+fruits = ["Яблоко", "Банан", "Апельсин"]
+print("Первый фрукт:", fruits[0])
+
+# Добавление элемента в конец списка
+fruits.append("Манго")
+print("Всего фруктов в списке:", len(fruits))
+
+# Перебор элементов списка
+for item in fruits:
+    print("Фрукт:", item)`,
+                quiz: [
+                    {
+                        question: 'Чему равен результат обращения к элементу nums[1], если nums = [10, 20, 30]?',
+                        options: ['10', '20', '30', 'Ошибка'],
+                        correct: 1,
+                        explanation: 'Индексация начинается с 0: nums[0] — это 10, а nums[1] — это второй элемент, то есть 20.'
+                    },
+                    {
+                        question: 'Какой метод добавляет новый элемент в конец существующего списка?',
+                        options: ['.add()', '.push()', '.append()', '.insert_end()'],
+                        correct: 2,
+                        explanation: 'Метод .append(элемент) добавляет переданное значение в самый конец списка.'
+                    },
+                    {
+                        question: 'Какая функция позволяет узнать длину (количество элементов) списка?',
+                        options: ['size()', 'count()', 'len()', 'length()'],
+                        correct: 2,
+                        explanation: 'Встроенная функция len() возвращает длину списка, строки или другой коллекции.'
+                    }
+                ],
+                challenge: {
+                    title: 'Задача 5: Сумма элементов списка',
+                    description: 'Дан список чисел numbers = [10, 20, 30, 40]. Добавь в него число 50 с помощью .append() и выведи сумму всех элементов через print(sum(numbers)).',
+                    starterCode: `numbers = [10, 20, 30, 40]\n# Добавь 50 в список и выведи сумму элементов\nnumbers.append(50)\nprint()`,
+                    expectedOutput: '150',
+                    hint: 'Напиши print(sum(numbers)) на последней строке'
+                }
+            },
+            {
+                id: 'functions',
+                number: 6,
+                title: 'Функции',
+                subtitle: 'Создание собственных команд: def, аргументы и return',
+                icon: '⚡',
+                color: 'from-violet-500 to-indigo-600',
+                summary: 'Функция — это именованный блок кода, который можно создать один раз и вызывать в любом месте программы сколько угодно раз.',
+                theoryHtml: `
+                    <div class="space-y-4 text-slate-200 leading-relaxed text-sm sm:text-base">
+                        <p>Функции объявляются с помощью ключевого слова <code class="px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-mono">def</code>, после которого указывается имя функции и параметры в круглых скобках.</p>
+                        <p>Чтобы функция вернула результат вычислений обратно в программу, используется ключевое слово <code class="px-1.5 py-0.5 rounded bg-slate-800 text-purple-300 font-mono">return</code>.</p>
+                        <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 font-mono text-xs sm:text-sm space-y-1">
+                            <div class="text-purple-400">def <span class="text-emerald-400">multiply</span>(a, b):</div>
+                            <div class="pl-6 text-slate-200"><span class="text-purple-400">return</span> a * b</div>
+                            <div class="text-slate-400 pt-1"># Вызов функции:</div>
+                            <div class="text-slate-200">res = multiply(6, 7) <span class="text-slate-500"># res равен 42</span></div>
+                        </div>
+                    </div>
+                `,
+                codeExample: `# Создание и вызов функции в Python
+def calculate_area(width, height):
+    area = width * height
+    return area
+
+room1 = calculate_area(5, 4)
+room2 = calculate_area(6, 3)
+
+print("Площадь первой комнаты:", room1)
+print("Площадь второй комнаты:", room2)
+print("Общая площадь:", room1 + room2)`,
+                quiz: [
+                    {
+                        question: 'Какое ключевое слово используется для объявления функции в Python?',
+                        options: ['func', 'function', 'def', 'create'],
+                        correct: 2,
+                        explanation: 'Ключевое слово def (от англ. define — определить) создаёт новую функцию.'
+                    },
+                    {
+                        question: 'Для чего используется команда return внутри функции?',
+                        options: ['Для вывода текста на экран', 'Для возврата результата работы функции', 'Для повторения функции заново', 'Для удаления переменных'],
+                        correct: 1,
+                        explanation: 'Оператор return завершает выполнение функции и возвращает вычисленное значение в точку её вызова.'
+                    },
+                    {
+                        question: 'Что выведет код: def double(x): return x * 2; print(double(9))?',
+                        options: ['9', '18', 'x * 2', 'None'],
+                        correct: 1,
+                        explanation: 'Функция double принимает аргумент 9, умножает его на 2 и возвращает число 18.'
+                    }
+                ],
+                challenge: {
+                    title: 'Задача 6: Функция удвоения числа',
+                    description: 'Напиши функцию make_double(n), которая возвращает n * 2. Затем вызови её для числа 15 и выведи результат через print(make_double(15)).',
+                    starterCode: `def make_double(n):\n    return n * 2\n\n# Вызови функцию make_double(15) внутри print()\nprint()`,
+                    expectedOutput: '30',
+                    hint: 'В последней строке напиши print(make_double(15))'
+                }
+            }
+        ];
+
+        /* ============================================================================
+         * 2. STATE MANAGEMENT & LOCALSTORAGE PERSISTENCE
+         * ============================================================================ */
+        const STORAGE_KEY = 'pymaster_nigina_progress_v1';
+
+        let appState = {
+            activeTopicIndex: 0,
+            activeChallengeIndex: 0,
+            topicsRead: {},       // { variables: true, ... }
+            quizAnswers: {},      // { "variables_0": 1, ... }
+            challengesSolved: {}  // { variables: true, ... }
+        };
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    appState.topicsRead = parsed.topicsRead || {};
+                    appState.quizAnswers = parsed.quizAnswers || {};
+                    appState.challengesSolved = parsed.challengesSolved || {};
+                }
+            } catch (e) {
+                console.warn('Не удалось загрузить сохранённый прогресс:', e);
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    topicsRead: appState.topicsRead,
+                    quizAnswers: appState.quizAnswers,
+                    challengesSolved: appState.challengesSolved
+                }));
+            } catch (e) {
+                console.warn('Не удалось сохранить прогресс:', e);
+            }
+            updateAllProgressUI();
+        }
+
+        function resetAllProgress() {
+            appState.topicsRead = {};
+            appState.quizAnswers = {};
+            appState.challengesSolved = {};
+            saveState();
+            renderTopicSidebar();
+            renderActiveTopicContent();
+            renderChallengeSelector();
+            showToast('🔄 Весь учебный прогресс был сброшен');
+        }
+
+        /* ============================================================================
+         * 3. RENDERING MODULES, QUIZZES & PROGRESS
+         * ============================================================================ */
+        function renderTopicSidebar() {
+            const sidebar = document.getElementById('topic-sidebar');
+            sidebar.innerHTML = pythonModules.map((mod, idx) => {
+                const isActive = idx === appState.activeTopicIndex;
+                const isRead = !!appState.topicsRead[mod.id];
+                const isChallengeDone = !!appState.challengesSolved[mod.id];
+                const quizDoneCount = [0, 1, 2].filter(qIdx => appState.quizAnswers[`${mod.id}_${qIdx}`] === mod.quiz[qIdx].correct).length;
+                const isFullyCompleted = isRead && isChallengeDone && quizDoneCount === 3;
+
+                return `
+                    <button onclick="selectTopic(${idx})" class="w-full text-left p-4 rounded-2xl transition-all flex items-center justify-between gap-3 border ${
+                        isActive
+                            ? 'bg-gradient-to-r from-indigo-600/25 to-blue-600/20 border-indigo-400/60 shadow-lg'
+                            : 'glass-card hover:border-slate-700'
+                    }">
+                        <div class="flex items-center gap-3.5 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br ${mod.color} flex items-center justify-center text-lg shrink-0 shadow-md">
+                                ${mod.icon}
+                            </div>
+                            <div class="truncate">
+                                <div class="text-xs font-bold uppercase tracking-wider ${isActive ? 'text-indigo-300' : 'text-slate-400'}">
+                                    Модуль ${mod.number}
+                                </div>
+                                <div class="font-bold text-sm sm:text-base truncate">${mod.title}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            ${isFullyCompleted
+                                ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold">✓ 100%</span>`
+                                : `<span class="text-xs text-slate-400 font-mono">${quizDoneCount}/3 тест</span>`
+                            }
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectTopic(index) {
+            appState.activeTopicIndex = index;
+            renderTopicSidebar();
+            renderActiveTopicContent();
+        }
+
+        function toggleTopicRead(moduleId) {
+            appState.topicsRead[moduleId] = !appState.topicsRead[moduleId];
+            saveState();
+            renderTopicSidebar();
+            renderActiveTopicContent();
+            if (appState.topicsRead[moduleId]) {
+                showToast('📘 Тема отмечена как изученная!');
+            }
+        }
+
+        function renderActiveTopicContent() {
+            const mod = pythonModules[appState.activeTopicIndex];
+            const isRead = !!appState.topicsRead[mod.id];
+            const container = document.getElementById('topic-content-container');
+
+            const quizHtml = mod.quiz.map((q, qIdx) => {
+                const key = `${mod.id}_${qIdx}`;
+                const userSelected = appState.quizAnswers[key];
+                const hasAnswered = userSelected !== undefined;
+
+                const optionsHtml = q.options.map((opt, optIdx) => {
+                    let btnStyle = 'bg-slate-900/90 hover:bg-slate-800 border-slate-700/80 text-slate-200';
+                    let badge = '';
+
+                    if (hasAnswered) {
+                        if (optIdx === q.correct) {
+                            btnStyle = 'bg-emerald-500/20 border-emerald-500 text-emerald-200 font-semibold';
+                            badge = '<span class="text-emerald-400 font-bold">✓ Верно</span>';
+                        } else if (optIdx === userSelected && userSelected !== q.correct) {
+                            btnStyle = 'bg-rose-500/20 border-rose-500 text-rose-200';
+                            badge = '<span class="text-rose-400 font-bold">✗ Ошибка</span>';
+                        } else {
+                            btnStyle = 'bg-slate-900/40 border-slate-800 text-slate-500';
+                        }
+                    }
+
+                    return `
+                        <button onclick="answerQuiz('${mod.id}', ${qIdx}, ${optIdx})" class="w-full text-left px-4 py-3 rounded-xl border text-xs sm:text-sm transition-all flex items-center justify-between gap-2 ${btnStyle}">
+                            <span>${opt}</span>
+                            ${badge}
+                        </button>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-950/60 border border-slate-800/90 space-y-3">
+                        <div class="font-bold text-sm sm:text-base text-slate-100">
+                            <span class="text-indigo-400 mr-1">Вопрос ${qIdx + 1}:</span> ${q.question}
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            ${optionsHtml}
+                        </div>
+                        ${hasAnswered ? `
+                            <div class="p-3 rounded-xl text-xs sm:text-sm ${userSelected === q.correct ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30' : 'bg-amber-500/10 text-amber-200 border border-amber-500/30'}">
+                                <strong>Пояснение:</strong> ${q.explanation}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = `
+                <div class="tab-fade space-y-8">
+                    <!-- Topic Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${mod.color} flex items-center justify-center text-3xl shadow-lg">
+                                ${mod.icon}
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-widest text-indigo-400">Модуль ${mod.number} из 6</div>
+                                <h3 class="text-2xl sm:text-3xl font-extrabold">${mod.title}</h3>
+                                <p class="text-xs sm:text-sm text-slate-400">${mod.subtitle}</p>
+                            </div>
+                        </div>
+
+                        <button onclick="toggleTopicRead('${mod.id}')" class="px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm border transition-all self-start sm:self-center flex items-center gap-2 ${
+                            isRead
+                                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+                        }">
+                            <span>${isRead ? '✅ Теория изучена' : 'Отметить как изученное'}</span>
+                        </button>
+                    </div>
+
+                    <!-- Summary Highlight -->
+                    <div class="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-sm sm:text-base text-indigo-200">
+                        💡 <strong>Главное:</strong> ${mod.summary}
+                    </div>
+
+                    <!-- Detailed Theory -->
+                    <div>
+                        <h4 class="text-lg font-bold mb-3 flex items-center gap-2">
+                            <span>📖</span> Теоретический разбор
+                        </h4>
+                        ${mod.theoryHtml}
+                    </div>
+
+                    <!-- Interactive Code Example -->
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <h4 class="text-lg font-bold flex items-center gap-2">
+                                <span>💻</span> Пример кода на Python
+                            </h4>
+                            <button onclick="sendModuleCodeToSandbox(${appState.activeTopicIndex})" class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-1.5">
+                                <span>▶ Запустить этот пример в тренажёре</span>
+                            </button>
+                        </div>
+                        <pre class="font-mono text-xs sm:text-sm bg-slate-950 p-4 sm:p-5 rounded-2xl overflow-x-auto border border-slate-800 text-sky-200 leading-relaxed"><code>${escapeHtml(mod.codeExample)}</code></pre>
+                    </div>
+
+                    <!-- Mini-Quiz Section -->
+                    <div class="pt-4 border-t border-slate-800">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="text-lg font-bold flex items-center gap-2">
+                                    <span>🧠</span> Мини-тест по теме «${mod.title}»
+                                </h4>
+                                <p class="text-xs text-slate-400">Ответь на 3 вопроса для закрепления материала</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            ${quizHtml}
+                        </div>
+                    </div>
+
+                    <!-- Bottom Navigation & Practical Task Link -->
+                    <div class="pt-6 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-2">
+                            ${appState.activeTopicIndex > 0 ? `
+                                <button onclick="selectTopic(${appState.activeTopicIndex - 1})" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm font-medium transition">
+                                    ← Предыдущая тема
+                                </button>
+                            ` : ''}
+                            ${appState.activeTopicIndex < pythonModules.length - 1 ? `
+                                <button onclick="selectTopic(${appState.activeTopicIndex + 1})" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs sm:text-sm font-medium transition">
+                                    Следующая тема →
+                                </button>
+                            ` : ''}
+                        </div>
+
+                        <button onclick="openTopicChallengeInSandbox(${appState.activeTopicIndex})" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-indigo-600/30 transition">
+                            🎯 Решить практическое задание по теме →
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function answerQuiz(moduleId, questionIndex, selectedOption) {
+            const mod = pythonModules.find(m => m.id === moduleId);
+            const key = `${moduleId}_${questionIndex}`;
+            appState.quizAnswers[key] = selectedOption;
+
+            if (selectedOption === mod.quiz[questionIndex].correct) {
+                showToast('✅ Правильный ответ!');
+                // Auto-mark topic as read if all 3 quiz questions are correct
+                const allCorrect = [0, 1, 2].every(i => appState.quizAnswers[`${moduleId}_${i}`] === mod.quiz[i].correct);
+                if (allCorrect) {
+                    appState.topicsRead[moduleId] = true;
+                    launchConfetti();
+                }
+            } else {
+                showToast('💡 Посмотри пояснение к ответу и попробуй ещё раз');
+            }
+
+            saveState();
+            renderTopicSidebar();
+            renderActiveTopicContent();
+        }
+
+        /* ============================================================================
+         * 4. INTERACTIVE PYTHON SANDBOX & EXECUTION ENGINE (SKULPT + FALLBACK)
+         * ============================================================================ */
+        const codeTemplates = {
+            hello: `# Знакомство с Python\nname = "Нигина"\nschool_class = "11 «А»"\n\nprint("Привет, мир программирования!")\nprint("Автор проекта:", name, "— ученица", school_class, "класса")`,
+            calc: `# Простой калькулятор на Python\na = 48\nb = 12\n\nprint("Сложение:", a + b)\nprint("Вычитание:", a - b)\nprint("Умножение:", a * b)\nprint("Деление:", a / b)`,
+            table: `# Таблица умножения на 7\nnumber = 7\nprint("Таблица умножения для числа", number)\n\nfor i in range(1, 10):\n    print(number, "x", i, "=", number * i)`,
+            fibonacci: `# Первые 8 чисел последовательности Фибоначчи\nfib = [0, 1]\nfor i in range(6):\n    next_num = fib[-1] + fib[-2]\n    fib.append(next_num)\n\nprint("Числа Фибоначчи:", fib)\nprint("Сумма списка:", sum(fib))`
+        };
+
+        function updateLineNumbers() {
+            const editor = document.getElementById('python-code-editor');
+            const lineNumbers = document.getElementById('line-numbers');
+            const linesCount = (editor.value.match(/\n/g) || []).length + 1;
+            let linesHtml = '';
+            for (let i = 1; i <= linesCount; i++) {
+                linesHtml += i + '<br>';
+            }
+            lineNumbers.innerHTML = linesHtml;
+        }
+
+        function renderChallengeSelector() {
+            const btnContainer = document.getElementById('challenge-selector-buttons');
+            btnContainer.innerHTML = pythonModules.map((mod, idx) => {
+                const isSelected = idx === appState.activeChallengeIndex;
+                const isSolved = !!appState.challengesSolved[mod.id];
+                return `
+                    <button onclick="selectChallenge(${idx})" class="px-3 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center justify-between gap-1 ${
+                        isSelected
+                            ? 'bg-indigo-600 text-white border-indigo-400 shadow-md'
+                            : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border-slate-800'
+                    }">
+                        <span class="truncate">${mod.number}. ${mod.title}</span>
+                        <span>${isSolved ? '✅' : '○'}</span>
+                    </button>
+                `;
+            }).join('');
+
+            const activeMod = pythonModules[appState.activeChallengeIndex];
+            const isSolved = !!appState.challengesSolved[activeMod.id];
+
+            document.getElementById('challenge-title').textContent = activeMod.challenge.title;
+            document.getElementById('challenge-desc').textContent = activeMod.challenge.description;
+            document.getElementById('challenge-expected-pill').textContent = 'Ожидаемый вывод: ' + activeMod.challenge.expectedOutput.replace(/\n/g, ' ↵ ');
+
+            const hintEl = document.getElementById('challenge-hint');
+            hintEl.textContent = '💡 Подсказка: ' + activeMod.challenge.hint;
+            hintEl.classList.add('hidden');
+
+            const badge = document.getElementById('task-status-badge');
+            if (isSolved) {
+                badge.textContent = '✅ Задание успешно решено!';
+                badge.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 self-start sm:self-center';
+            } else {
+                badge.textContent = '⏳ Ожидает решения';
+                badge.className = 'text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 self-start sm:self-center';
+            }
+        }
+
+        function selectChallenge(index) {
+            appState.activeChallengeIndex = index;
+            renderChallengeSelector();
+            loadCurrentChallengeStarter();
+        }
+
+        function loadCurrentChallengeStarter() {
+            const activeMod = pythonModules[appState.activeChallengeIndex];
+            const editor = document.getElementById('python-code-editor');
+            editor.value = activeMod.challenge.starterCode;
+            updateLineNumbers();
+            document.getElementById('verification-feedback').classList.add('hidden');
+        }
+
+        function toggleChallengeHint() {
+            const hintEl = document.getElementById('challenge-hint');
+            hintEl.classList.toggle('hidden');
+        }
+
+        function loadTemplate(templateKey) {
+            const editor = document.getElementById('python-code-editor');
+            editor.value = codeTemplates[templateKey] || '';
+            updateLineNumbers();
+            runPythonCode(false);
+        }
+
+        function loadCodeIntoSandbox(codeString) {
+            const editor = document.getElementById('python-code-editor');
+            editor.value = codeString;
+            updateLineNumbers();
+            document.getElementById('sandbox-section').scrollIntoView({ behavior: 'smooth' });
+            setTimeout(() => runPythonCode(false), 350);
+        }
+
+        function sendModuleCodeToSandbox(topicIndex) {
+            const mod = pythonModules[topicIndex];
+            loadCodeIntoSandbox(mod.codeExample);
+        }
+
+        function openTopicChallengeInSandbox(topicIndex) {
+            selectChallenge(topicIndex);
+            document.getElementById('sandbox-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function clearEditor() {
+            const editor = document.getElementById('python-code-editor');
+            editor.value = '';
+            updateLineNumbers();
+        }
+
+        function clearConsole() {
+            document.getElementById('python-console-output').innerHTML = '<div class="text-slate-500 italic">Консоль очищена.</div>';
+            document.getElementById('verification-feedback').classList.add('hidden');
+        }
+
+        function copyEditorCode() {
+            const editor = document.getElementById('python-code-editor');
+            editor.select();
+            document.execCommand('copy');
+            const btnText = document.getElementById('copy-btn-text');
+            btnText.textContent = '✓ Скопировано!';
+            setTimeout(() => { btnText.textContent = '📋 Копировать'; }, 1800);
+        }
+
+        // Execute Python code using Skulpt (or reliable fallback interpreter if offline)
+        async function runPythonCode(verifyChallenge = false) {
+            const code = document.getElementById('python-code-editor').value;
+            const consoleEl = document.getElementById('python-console-output');
+            const feedbackEl = document.getElementById('verification-feedback');
+
+            if (!code.trim()) {
+                consoleEl.innerHTML = '<div class="text-amber-400">⚠ Редактор пуст. Введите код на Python для запуска.</div>';
+                return;
+            }
+
+            let outputBuffer = '';
+            let hasError = false;
+            let errorMessage = '';
+
+            if (typeof Sk !== 'undefined') {
+                Sk.pre = "python-console-output";
+                Sk.configure({
+                    output: function(text) {
+                        outputBuffer += text;
+                    },
+                    read: function(x) {
+                        if (Sk.builtinFiles === undefined || Sk.builtinFiles["files"][x] === undefined) {
+                            throw "File not found: '" + x + "'";
+                        }
+                        return Sk.builtinFiles["files"][x];
+                    }
+                });
+
+                try {
+                    await Sk.misceval.asyncToPromise(function() {
+                        return Sk.importMainWithBody("<stdin>", false, code, true);
+                    });
+                } catch (err) {
+                    hasError = true;
+                    errorMessage = translatePythonError(err.toString());
+                }
+            } else {
+                // Lightweight fallback evaluator if CDN is unreachable
+                try {
+                    outputBuffer = fallbackPythonRunner(code);
+                } catch (err) {
+                    hasError = true;
+                    errorMessage = 'Ошибка выполнения: ' + err.message;
+                }
+            }
+
+            // Render Output
+            if (hasError) {
+                consoleEl.innerHTML = `<div class="text-rose-400 font-semibold">${escapeHtml(errorMessage)}</div>`;
+            } else {
+                const displayOut = outputBuffer.length > 0
+                    ? `<div class="text-emerald-300">${escapeHtml(outputBuffer)}</div>`
+                    : `<div class="text-slate-400 italic">Программа завершилась успешно (нет вывода через print).</div>`;
+                consoleEl.innerHTML = displayOut;
+            }
+
+            // Verify against active practical challenge if requested
+            if (verifyChallenge) {
+                const activeMod = pythonModules[appState.activeChallengeIndex];
+                const cleanActual = outputBuffer.trim().replace(/\r\n/g, '\n');
+                const cleanExpected = activeMod.challenge.expectedOutput.trim();
+
+                feedbackEl.classList.remove('hidden');
+                if (!hasError && cleanActual === cleanExpected) {
+                    appState.challengesSolved[activeMod.id] = true;
+                    saveState();
+                    renderChallengeSelector();
+                    renderTopicSidebar();
+                    launchConfetti();
+                    feedbackEl.className = 'p-3.5 border-t border-emerald-500/40 bg-emerald-500/15 text-emerald-300 text-xs sm:text-sm font-semibold';
+                    feedbackEl.innerHTML = `🎉 Блестяще! Задача «${activeMod.challenge.title}» решена верно! Вывод полностью совпадает (${cleanExpected.replace(/\n/g, ', ')}).`;
+                    showToast('🏆 Практическая задача решена!');
+                } else {
+                    feedbackEl.className = 'p-3.5 border-t border-rose-500/40 bg-rose-500/15 text-rose-300 text-xs sm:text-sm font-medium';
+                    feedbackEl.innerHTML = `❌ Пока не совпало. Ожидался вывод: <code class="font-mono bg-slate-900 px-1.5 py-0.5 rounded text-amber-300">${escapeHtml(cleanExpected)}</code>, а получено: <code class="font-mono bg-slate-900 px-1.5 py-0.5 rounded">${escapeHtml(cleanActual || 'пусто')}</code>.`;
+                }
+            } else {
+                feedbackEl.classList.add('hidden');
+            }
+        }
+
+        function translatePythonError(rawErr) {
+            if (rawErr.includes('SyntaxError')) {
+                return 'Синтаксическая ошибка (SyntaxError): проверьте кавычки, скобки и двоеточия в конце условий или циклов.\nПодробности: ' + rawErr;
+            }
+            if (rawErr.includes('NameError')) {
+                return 'Ошибка имени (NameError): используется переменная или функция, которая ещё не была создана.\nПодробности: ' + rawErr;
+            }
+            if (rawErr.includes('TypeError')) {
+                return 'Ошибка типа данных (TypeError): попытка сложить несовместимые типы (например, строку и число без int() или str()).\nПодробности: ' + rawErr;
+            }
+            if (rawErr.includes('IndentationError')) {
+                return 'Ошибка отступов (IndentationError): проверьте количество пробелов в начале строк после if, for, while или def.\nПодробности: ' + rawErr;
+            }
+            return rawErr;
+        }
+
+        // Minimal Fallback Runner for basic print/math if CDN is blocked
+        function fallbackPythonRunner(code) {
+            let logs = [];
+            const lines = code.split('\n');
+            for (let line of lines) {
+                const t = line.trim();
+                if (t.startsWith('print(') && t.endsWith(')')) {
+                    const inner = t.slice(6, -1);
+                    logs.push(inner.replace(/["']/g, ''));
+                }
+            }
+            return logs.join('\n') + '\n';
+        }
+
+        /* ============================================================================
+         * 5. OVERALL PROGRESS TRACKER & CERTIFICATE
+         * ============================================================================ */
+        function updateAllProgressUI() {
+            const totalTopics = pythonModules.length; // 6
+            const totalQuizzes = totalTopics * 3;     // 18
+            const totalChallenges = totalTopics;      // 6
+
+            const readCount = pythonModules.filter(m => appState.topicsRead[m.id]).length;
+            let correctQuizCount = 0;
+            pythonModules.forEach(m => {
+                m.quiz.forEach((q, qIdx) => {
+                    if (appState.quizAnswers[`${m.id}_${qIdx}`] === q.correct) {
+                        correctQuizCount++;
+                    }
+                });
+            });
+            const solvedCount = pythonModules.filter(m => appState.challengesSolved[m.id]).length;
+
+            // Weighted overall percentage: 20% reading, 40% quizzes, 40% coding challenges
+            const totalPointsPossible = totalTopics + totalQuizzes + totalChallenges; // 30 points
+            const earnedPoints = readCount + correctQuizCount + solvedCount;
+            const percentage = Math.round((earnedPoints / totalPointsPossible) * 100);
+
+            // Top Nav Bar & Section Counter
+            document.getElementById('nav-progress-text').textContent = `${percentage}%`;
+            document.getElementById('nav-progress-bar').style.width = `${percentage}%`;
+
+            const completedModulesCount = pythonModules.filter(m => {
+                const qOk = [0, 1, 2].every(i => appState.quizAnswers[`${m.id}_${i}`] === m.quiz[i].correct);
+                return appState.topicsRead[m.id] && appState.challengesSolved[m.id] && qOk;
+            }).length;
+            document.getElementById('completed-topics-counter').textContent = `${completedModulesCount} из 6`;
+
+            // Progress Section Cards
+            document.getElementById('stat-total-percent').textContent = `${percentage}%`;
+            document.getElementById('stat-total-bar').style.width = `${percentage}%`;
+            document.getElementById('stat-topics-read').textContent = `${readCount} / 6`;
+            document.getElementById('stat-quizzes-passed').textContent = `${correctQuizCount} / 18`;
+            document.getElementById('stat-challenges-solved').textContent = `${solvedCount} / 6`;
+
+            // Module Breakdown Grid
+            const grid = document.getElementById('progress-modules-grid');
+            grid.innerHTML = pythonModules.map((m, idx) => {
+                const isRead = !!appState.topicsRead[m.id];
+                const isSolved = !!appState.challengesSolved[m.id];
+                const qScore = [0, 1, 2].filter(i => appState.quizAnswers[`${m.id}_${i}`] === m.quiz[i].correct).length;
+                const modPercent = Math.round((( (isRead ? 1 : 0) + qScore + (isSolved ? 1 : 0) ) / 5) * 100);
+
+                return `
+                    <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col justify-between gap-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-xl">${m.icon}</span>
+                                <span class="font-bold text-sm sm:text-base">${m.number}. ${m.title}</span>
+                            </div>
+                            <span class="text-xs font-extrabold ${modPercent === 100 ? 'text-emerald-400' : 'text-indigo-400'}">${modPercent}%</span>
+                        </div>
+                        <div class="text-xs text-slate-400 space-y-1">
+                            <div class="flex justify-between"><span>Теория:</span> <span class="${isRead ? 'text-emerald-400' : 'text-slate-500'}">${isRead ? 'Изучена ✓' : 'Не отмечена'}</span></div>
+                            <div class="flex justify-between"><span>Тест:</span> <span class="${qScore === 3 ? 'text-emerald-400' : 'text-amber-300'}">${qScore} из 3</span></div>
+                            <div class="flex justify-between"><span>Практика в коде:</span> <span class="${isSolved ? 'text-emerald-400' : 'text-slate-500'}">${isSolved ? 'Решена ✓' : 'В процессе'}</span></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Show Certificate if 100%
+            const certEl = document.getElementById('completion-certificate');
+            if (percentage === 100) {
+                certEl.classList.remove('hidden');
+            } else {
+                certEl.classList.add('hidden');
+            }
+        }
+
+        /* ============================================================================
+         * 6. UI HELPERS: THEME TOGGLE, CONFETTI, TOAST & KEYBOARD SUPPORT
+         * ============================================================================ */
+        function toggleTheme() {
+            const htmlEl = document.documentElement;
+            const bodyEl = document.body;
+            const isDark = bodyEl.classList.contains('dark');
+            if (isDark) {
+                bodyEl.classList.remove('dark', 'bg-slate-950', 'text-slate-100');
+                bodyEl.classList.add('bg-slate-50', 'text-slate-900');
+                htmlEl.classList.remove('dark');
+            } else {
+                bodyEl.classList.add('dark', 'bg-slate-950', 'text-slate-100');
+                bodyEl.classList.remove('bg-slate-50', 'text-slate-900');
+                htmlEl.classList.add('dark');
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        let toastTimer = null;
+        function showToast(message) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = message;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // Lightweight Confetti Celebration
+        function launchConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = Array.from({ length: 65 }, () => ({
+                x: Math.random() * canvas.width,
+                y: -20 - Math.random() * 100,
+                size: 6 + Math.random() * 6,
+                color: ['#38bdf8', '#fbbf24', '#34d399', '#818cf8', '#f472b6'][Math.floor(Math.random() * 5)],
+                speedY: 3 + Math.random() * 4,
+                speedX: -2 + Math.random() * 4,
+                angle: Math.random() * 360
+            }));
+
+            let frame = 0;
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.y += p.speedY;
+                    p.x += p.speedX;
+                    p.angle += 4;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate((p.angle * Math.PI) / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+                });
+                frame++;
+                if (frame < 110) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animateConfetti();
+        }
+
+        // Initialize Application on Window Load
+        window.onload = function() {
+            loadState();
+            renderTopicSidebar();
+            renderActiveTopicContent();
+            renderChallengeSelector();
+            loadCurrentChallengeStarter();
+            updateAllProgressUI();
+
+            // Setup Editor Line Numbers & Tab Key Handler
+            const editor = document.getElementById('python-code-editor');
+            editor.addEventListener('input', updateLineNumbers);
+            editor.addEventListener('keydown', function(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+                    this.value = this.value.substring(0, start) + '    ' + this.value.substring(end);
+                    this.selectionStart = this.selectionEnd = start + 4;
+                    updateLineNumbers();
+                }
+            });
+        };
+    </script>
+</body>
+</html>
